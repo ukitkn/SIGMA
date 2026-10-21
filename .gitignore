@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.DS_Store
+.ipynb_checkpoints/
+data/*
+!data/.gitkeep
+outputs/*
+!outputs/.gitkeep
+*.h5ad
+*.npz
+*.pt

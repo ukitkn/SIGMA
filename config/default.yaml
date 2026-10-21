@@ -1,0 +1,63 @@
+project:
+  name: SIGMA
+  seed: 1234
+  device: auto
+
+data:
+  input: data/processed/ST-colon1.h5ad
+  counts_layer: null
+  spatial_key: spatial
+  truth_key: ident.annot
+  sample_id: ST-colon1
+  min_cells: 1
+  n_hvg: 3000
+  target_sum: 10000
+
+graph:
+  spatial_neighbors: 8
+  expression_neighbors: 15
+  ccc_neighbors: 8
+  ccc_top_k: 8
+  ccc_permutations: 30
+  ccc_min_zscore: 0.0
+  ligand_receptor_csv: data/cellphone_lr_pairs.csv
+  ligand_column: ligand
+  receptor_column: receptor
+
+model:
+  latent_dim: 32
+  hidden_dim: 64
+  layers: 3
+  dropout: 0.2
+  jumping_knowledge: false
+  clusters: 20
+  fusion: concat
+  use_spatial_view: true
+  use_ccc_view: true
+  use_ccc_loss: true
+  expression_weight: 1.5
+  spatial_weight: 0.5
+  cluster_weight: 0.1
+  ccc_weight: 0.1
+  contrastive_weight: 0.1
+  vae_weight: 0.1
+  graph_smoothness_weight: 0.05
+  cluster_warmup_epochs: 60
+  learning_rate: 0.001
+  weight_decay: 0.0005
+  epochs: 400
+  patience: 50
+  min_delta: 0.0001
+  scheduler_min_lr: 0.00001
+  edge_batch_size: 65536
+
+analysis:
+  leiden_resolution: 0.4
+  annotation_min_score: 0.05
+  trajectory_neighbors: 20
+  field_grid_size: 80
+  field_neighbors: 80
+  field_bandwidth: 80.0
+
+outputs:
+  directory: outputs/ST-colon1

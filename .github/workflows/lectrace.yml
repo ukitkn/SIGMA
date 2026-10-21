@@ -26,10 +26,11 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: '3.12'
+          enable-cache: false
 
       - name: Install CPU model and LecTrace dependencies
         run: |
-          uv venv --python 3.12
+          uv venv --python 3.12 --clear
           uv pip install torch --index-url https://download.pytorch.org/whl/cpu
           uv pip install -e '.[lectrace]' 'lectrace==1.1.30'
 

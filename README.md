@@ -100,6 +100,8 @@ The presenter notes include suggested timing and talking points. The `@inspect` 
 python lectures/01_sigma_execution.py
 ```
 
+The interactive presentation is published at <https://ukitkn.github.io/SIGMA/>. The source repository remains private; the deployed lecture page is publicly viewable and contains only the synthetic teaching trace.
+
 ## Output files
 
 The default output directory is `outputs/ST-colon1/`:

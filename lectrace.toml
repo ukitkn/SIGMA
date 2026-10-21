@@ -1,0 +1,4 @@
+[lectrace]
+title = "SIGMA: Tumor–Stroma Spatial Analysis"
+lectures = ["lectures/*.py"]
+output = "_site"

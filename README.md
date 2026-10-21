@@ -85,7 +85,7 @@ sigma compare-slingshot --config config/default.yaml --slingshot-csv results/sli
 
 ## LecTrace presentation demo
 
-`lectures/01_sigma_execution.py` is a 10-minute, five-state walkthrough of the SIGMA computation. It covers the healthcare motivation, spatial and expression graphs, a ligand–receptor communication graph, dual graph message passing with attention, and a downstream invasion-associated score. Its five-spot example is synthetic teaching data; the values are not measurements or performance results from the colon samples.
+`lectures/01_sigma_execution.py` is a 10-minute, five-state walkthrough using the actual graph builders, `SigmaModel`, decoders, marker annotation, DPT and spatial-field functions in this repository. It uses 60 synthetic spots and a small gene panel. The conclusion separately summarizes the archived report tables; the teaching run does not reproduce those experimental scores.
 
 LecTrace requires Python 3.11 or newer. Install its optional dependency and start the interactive viewer from the repository root:
 
@@ -94,13 +94,15 @@ python -m pip install -e ".[lectrace]"
 lectrace serve lectures/01_sigma_execution.py
 ```
 
-The presenter notes include suggested timing and talking points. The `@inspect` and `@stepover` directives keep the variable panel focused on the five selected execution states. The script also runs with ordinary Python for a text-only preview:
+The page contains concise explanations and computed figures. Full speaking notes and the ten-minute timing plan are in [`lectures/PRESENTER_NOTES.md`](lectures/PRESENTER_NOTES.md). The script selects graph construction, dual encoding with concat fusion, a reconstruction update, cluster interpretation, and the rooted spatial field. Initialization and the training loop are skipped in the presentation trace. Run it directly for an execution check, or build the interactive site:
 
 ```bash
 python lectures/01_sigma_execution.py
+lectrace build lectures/01_sigma_execution.py --no-incremental
+python scripts/verify_lecture.py
 ```
 
-The interactive presentation is published at <https://ukitkn.github.io/SIGMA/>. The source repository remains private; the deployed lecture page is publicly viewable and contains only the synthetic teaching trace.
+The interactive presentation is published at <https://ukitkn.github.io/SIGMA/>. The repository and page are public. Detailed source mapping, teaching settings and evidence provenance are documented in [`lectures/README.md`](lectures/README.md).
 
 ## Output files
 

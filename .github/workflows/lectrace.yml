@@ -25,13 +25,19 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
         with:
-          enable-cache: true
+          python-version: '3.12'
 
-      - name: Install LecTrace
-        run: uv tool install lectrace
+      - name: Install CPU model and LecTrace dependencies
+        run: |
+          uv venv --python 3.12
+          uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+          uv pip install -e '.[lectrace]' 'lectrace==1.1.30'
 
       - name: Build lecture site
-        run: lectrace build --output _site --no-incremental
+        run: .venv/bin/lectrace build lectures/01_sigma_execution.py --output _site --no-incremental
+
+      - name: Verify execution trace
+        run: .venv/bin/python scripts/verify_lecture.py
 
       - uses: actions/upload-pages-artifact@v3
         with:

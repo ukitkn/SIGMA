@@ -1,0 +1,9 @@
+backbone,integration,ARI,Macro_Dice
+Original,Physical only,0.613,0.7124
+Original,Regularization,0.2289,0.4786
+Original,Attention,0.6476,0.806
+Original,Hybrid,0.5825,0.5978
+Upgraded,Physical only,0.6712,0.7383
+Upgraded,Regularization,0.6803,0.614
+Upgraded,Attention,0.6712,0.7383
+Upgraded,Hybrid,0.6775,0.7319

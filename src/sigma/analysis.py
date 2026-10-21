@@ -133,8 +133,8 @@ def _trajectory(adata: ad.AnnData, neighbors: int) -> None:
     adata.uns["dpt_root_index"] = root
     adata.uns["trajectory_direction"] = "0 is the selected early root; 1 is the high-DPT end."
 
-    work = adata.copy()
-    work.X = adata.obsm["X_sigma"].copy()
+    # Embedding dimensions differ from the number of measured genes.
+    work = ad.AnnData(X=adata.obsm["X_sigma"].copy(), obs=adata.obs.copy())
     n_neighbors = min(max(2, neighbors), adata.n_obs - 1)
     sc.pp.neighbors(work, n_neighbors=n_neighbors, use_rep="X", random_state=1234)
     state = adata.obs["marker_cell_type"].astype(str).to_numpy()

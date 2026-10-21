@@ -19,7 +19,7 @@ The repository contains a complete implementation of the workflow described in t
 
 Place the data files in `data/` or change their locations in `config/default.yaml`.
 
-The provided data directory contains Seurat `.rda` objects. The conversion command below exports the raw `Spatial` assay counts, the Visium pixel coordinates, and Seurat metadata such as `ident.annot` into an AnnData file. If another assay is required, pass its name with `--assay`.
+Place the Seurat `.rda` objects in `data/`; raw datasets are excluded from version control. The conversion command below exports the raw `Spatial` assay counts, the Visium pixel coordinates, and Seurat metadata such as `ident.annot` into an AnnData file. If another assay is required, pass its name with `--assay`.
 
 The resulting AnnData file must contain:
 

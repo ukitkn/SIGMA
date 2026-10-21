@@ -28,10 +28,10 @@ The central technical question today is how changing the graph changes the
 messages a neural network receives, and how reconstruction objectives train the
 resulting embedding. We will inspect five states rather than every training epoch.
 
-The executable example has sixty synthetic spots and uses the repository's actual
-model functions. Its small dimensions let us inspect the tensors. At the end I
-will discuss the archived report results separately; this teaching run does not
-reproduce the original benchmark.
+The executable example has sixty synthetic spots and uses the current reconstructed
+model code. Its small dimensions let us inspect the tensors. This teaching run does
+not reproduce the historical model or benchmark. At the end I will discuss the
+report's archived table values separately.
 
 **Action:** Stay on the overview until the problem, research question and two-view
 approach are clear. Then move to State 1.
@@ -67,10 +67,12 @@ can acquire different physical and communication representations because the
 graphs and branch parameters differ.
 
 The important fusion line is the concatenation followed by a learned linear map
-and ReLU. This is the repository's hybrid setting, rather than its optional
-attention-fusion variant. Concatenation makes both feature sets available to a
-joint projection. We inspect one forward pass after a short training run; the
-eighty-epoch loop is deliberately omitted from this presentation trace.
+and ReLU. This is the reconstruction's hybrid setting, rather than its optional
+cross-view attention-fusion variant. The base still uses attention internally.
+The report mentions Jumping Knowledge, but does not specify its operator; the
+teaching configuration leaves it disabled, so this demo makes no claim about the
+historical JK setting. We inspect one forward pass after a short training run;
+the eighty-epoch loop is deliberately omitted from this presentation trace.
 
 **Action:** Point to `z_base`, `z_sp`, `z_ccc` and `z`. Follow one heatmap row across
 the panels. Explain the operation, rather than assigning a biological name to
@@ -136,10 +138,10 @@ arrows. Do not identify the largest synthetic value as a clinical finding.
 
 ## 8:45–10:00 — Key result and healthcare interpretation
 
-Return to the actual report tables. Across eight sections, the archived mean ARI
-is 0.4901 for SIGMA and 0.4204 for MCGAE. The section-wise differences matter:
-SIGMA exceeds MCGAE on four sections and falls below it on four. The average gain
-does not mean every tissue section improves.
+Return to the report tables. Across eight sections, the archived mean ARI is
+0.4901 for SIGMA and 0.4204 for MCGAE. SIGMA exceeds MCGAE on four sections,
+falls below it on four, and ranks first among the four listed methods on three.
+The average gain does not mean every tissue section improves.
 
 The ST-colon1 ablation also shows a trade-off. With the upgraded backbone,
 physical-only to hybrid changes ARI from 0.6712 to 0.6775, but Macro Dice changes

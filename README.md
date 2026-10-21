@@ -85,7 +85,7 @@ sigma compare-slingshot --config config/default.yaml --slingshot-csv results/sli
 
 ## LecTrace presentation demo
 
-`lectures/01_sigma_execution.py` is a 10-minute, five-state walkthrough using the actual graph builders, `SigmaModel`, decoders, marker annotation, DPT and spatial-field functions in this repository. It uses 60 synthetic spots and a small gene panel. The conclusion separately summarizes the archived report tables; the teaching run does not reproduce those experimental scores.
+`lectures/01_sigma_execution.py` is a 10-minute, five-state walkthrough using this reconstruction's graph builders, `SigmaModel`, decoders, marker annotation, DPT and spatial-field functions. It uses 60 synthetic spots and a small gene panel. The conclusion separately summarizes archived report tables; the teaching run does not reproduce the historical model or those experimental scores.
 
 LecTrace requires Python 3.11 or newer. Install its optional dependency and start the interactive viewer from the repository root:
 

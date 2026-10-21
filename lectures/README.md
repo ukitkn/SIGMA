@@ -4,8 +4,9 @@ Live page: <https://ukitkn.github.io/SIGMA/>
 
 The presentation is designed for ten minutes of oral explanation while stepping
 through five selected computational states. It does not replay the full training
-trace. The audience sees short What / Changes / Why explanations, actual numerical
-outputs and figures. The full spoken script is in [PRESENTER_NOTES.md](PRESENTER_NOTES.md),
+trace. The audience sees short What / Changes / Why explanations, computed teaching
+outputs and figures, plus a separate summary of archived report results. The full
+spoken script is in [PRESENTER_NOTES.md](PRESENTER_NOTES.md),
 outside the page. A video is optional under the assignment.
 
 | Time | Selected state | Repository implementation |
@@ -37,14 +38,14 @@ during the build; the viewer does not train a model in the teacher's browser.
 
 - 60 synthetic spots on a 6 × 10 grid; the small gene panel retains all its genes.
 - Library-total normalization to 10,000 and `log1p`; full expression is retained.
-- Physical kNN: 8; expression kNN: 15; teaching LR pair: CXCL12 / CXCR4.
+- Physical kNN: coordinate-only, k=8; expression kNN: 15; teaching LR pair: CXCL12 / CXCR4. The report describes H&E morphology in the physical view, but the historical morphology extractor was unavailable and is not used in this teaching example.
 - CCC: spatial candidates, receptor-shuffle z-scores with 30 permutations, top-k 8,
   and symmetric edges. This is the repository's LR graph builder, not the full
   CellPhoneDB statistical workflow or a test of causal signaling.
 - Three residual GCN layers with LayerNorm; hidden width 16, latent width 8,
-  dropout 0.2, three clusters, concat + Linear + ReLU fusion. JK is disabled,
-  matching the default configuration and inspected historical settings. No H&E
-  features are used in this executable example.
+  dropout 0.2, three clusters, concat + Linear + ReLU fusion. JK is disabled in
+  the teaching configuration; the report does not specify the historical JK
+  operator. No H&E features are used in this executable example.
 - 80 training epochs execute through `sigma.model.train_model`, with the same loss
   families as the repository. The loop is omitted from the presentation trace.
 - One additional visible Adam update uses only the expression and CCC terms,
@@ -67,9 +68,9 @@ during the build; the viewer does not train a model in the teacher's browser.
   average. Displayed arrows equal `gradient(P) = -gradient(1-P)`.
 
 These small settings make the neural computation inspectable. They are not the
-configuration or checkpoints that produced the report's archived benchmark.
-The old hand-written attention approximation and marker-mixture ranking have been
-replaced with calls to the repository implementation.
+historical configuration or checkpoints that produced the report's archived benchmark.
+The hand-written attention approximation and marker-mixture ranking have been
+replaced with calls to the reconstructed implementation.
 
 ## Evidence and build checks
 

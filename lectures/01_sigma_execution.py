@@ -17,9 +17,9 @@ def main():
 
     # State 1 | 2:30–3:40 | Expression and location become graph inputs.
     explain("State 1 · Build physical and communication graphs",
-            "Normalize a small expression panel; connect nearby tissue spots.",
-            "Ligand–receptor scores filter and weight a second neighborhood.",
-            "Physical proximity and expression-compatible signaling encode different context.")
+            "The teaching run connects spots by coordinates and scores nearby pairs with one CXCL12→CXCR4 example.",
+            "Thirty receptor shuffles and top-k selection produce a symmetric, weighted CCC graph.",
+            "Each graph defines a different neighborhood for message passing; this demo omits the H&E features described in the report.")
     adata, coordinates = demo.adata, demo.coordinates  # @inspect coordinates
     physical = knn_graph(coordinates, k=8)  # @inspect physical
     communication, graph_info = build_ccc_graph(
@@ -29,9 +29,9 @@ def main():
 
     # State 2 | 3:40–5:05 | The same base embedding takes two message-passing paths.
     explain("State 2 · Encode two views and fuse their features",
-            "An MCGAE-inspired base feeds separate residual GCN branches.",
-            "Concatenate the spatial and CCC embeddings, then project with Linear + ReLU.",
-            "The final representation can retain both tissue layout and communication context.")
+            "The MCGAE-inspired base feeds separate three-layer residual GCNs for physical and CCC graphs.",
+            "The two embeddings are concatenated and projected with Linear + ReLU; this run uses no cross-view attention fusion.",
+            "The fused spot representation carries both tissue-neighborhood and communication context.")
     model, x, a_sp, a_ccc, a_expr = demo.fit(physical, communication)  # @invisible
     encoded = model(x, a_sp, a_ccc, a_expr)
     z_base, z_sp, z_ccc = encoded["z_base"], encoded["z_spatial"], encoded["z_ccc"]
@@ -40,9 +40,9 @@ def main():
 
     # State 3 | 5:05–6:30 | Show one real update, not the complete training trace.
     explain("State 3 · Reconstruct expression and communication topology",
-            "Decode gene expression and score edges with a bilinear CCC decoder.",
-            "One gradient update changes the encoder and decoder parameters.",
-            "The fused embedding must explain measurable features and the inferred graph.")
+            "An expression decoder reconstructs features; a bilinear decoder scores inferred CCC edges.",
+            "One visible Adam update uses only the selected expression and CCC loss terms.",
+            "The update fits expression and graph structure; the full trainer also uses other objectives.")
     x_hat = encoded["x_reconstruction"]
     edge_logits = model.ccc_logits(z, demo.edge_source, demo.edge_target)
     reconstruction = F.mse_loss(x_hat, x)
@@ -57,9 +57,9 @@ def main():
 
     # State 4 | 6:30–7:35 | Cluster membership is different from a tissue label.
     explain("State 4 · Turn an embedding into interpretable tissue groups",
-            "Initialize centers on the learned embedding; Student-t distances give soft assignments.",
-            "Marker programs separately annotate Tumor, Stroma and Other spots.",
-            "A cluster ID needs biological interpretation; q is not a tumor probability.")
+            "Student-t distances assign each spot softly to three learned cluster centers.",
+            "Argmax gives cluster IDs; marker programs separately annotate Tumor, Stroma and Other.",
+            "A cluster ID is not a tumor probability, and marker labels are not independent histology validation.")
     final = demo.forward()  # @invisible
     model.initialize_clusters(final["z"].detach().numpy(), seed=1234)
     q = student_t_assignments(final["z"], model.cluster_centers)  # @inspect q
@@ -70,9 +70,9 @@ def main():
 
     # State 5 | 7:35–8:45 | A spatial hypothesis follows from rooted graph ordering.
     explain("State 5 · Convert rooted pseudotime into a spatial score field",
-            "Choose a marker-guided early root, then run diffusion pseudotime on the embedding.",
-            "Kernel interpolation turns spot scores into P(x,y); the displayed direction is ∇P.",
-            "This prioritizes spatial patterns for follow-up; pseudotime is not elapsed time.")
+            "A marker-informed root anchors diffusion pseudotime on the learned spot graph.",
+            "Kernel smoothing turns relative spot scores into P(x,y) and its gradient.",
+            "The field can guide follow-up review; it is not elapsed time, physical motion, or validated patient risk.")
     _trajectory(adata, neighbors=20)
     pseudotime = adata.obs["invasion_progress"].to_numpy()  # @inspect pseudotime
     field = demo.spatial_field()  # @inspect field

@@ -38,19 +38,15 @@ def show(figure):
 def show_intro():
     text("""## Healthcare problem, motivation and approach
 
-**Problem:** Colorectal tumor cells interact with surrounding stroma at the invasive margin.
+**Problem:** Recover spot-level tumor, stromal and other compartments around the colorectal tumor margin.
 
-**Motivation:** Spatial transcriptomics measures expression and location, but proximity alone
-does not describe ligand–receptor context.
+**Motivation:** Spatial transcriptomics adds location to expression; proximity alone does not describe ligand–receptor context.
 
-**Question:** Can communication-aware graph learning improve tumor–stroma recovery
-and support invasion-associated spatial interpretation?
+**Question:** Can communication-aware graph learning improve compartment recovery and support invasion-associated interpretation?
 
-**Approach:** MCGAE-inspired base → physical / CCC encoders → hybrid fusion →
-expression + topology reconstruction → compartments and a spatial score field.
+**Approach:** MCGAE-inspired base → physical / CCC encoders → hybrid fusion → expression + topology reconstruction → compartments and a spatial score field.
 
-*Execution uses 60 synthetic spots through the repository's model code.
-The conclusion uses archived report tables, independently of these teaching outputs.*
+*The execution uses 60 synthetic spots and this repository's reconstructed code. Report results shown at the end are archived table values; this teaching run does not reproduce them.*
 """)
     fig, ax = plt.subplots(figsize=(10, 2.8), layout="constrained")
     labels = ["Spatial expression\nX + coordinates", "Dual graph encoders\nphysical + CCC",
@@ -295,18 +291,17 @@ def show_results():
     physical = ablation[(ablation.backbone == "Upgraded") & (ablation.integration == "Physical only")].iloc[0]
     hybrid = ablation[(ablation.backbone == "Upgraded") & (ablation.integration == "Hybrid")].iloc[0]
     assert round(means.SIGMA, 4) == 0.4901 and round(means.MCGAE, 4) == 0.4204
+    first_place = int((benchmark["SIGMA"] == benchmark[["stLearn", "Seurat", "MCGAE", "SIGMA"]].max(axis=1)).sum())
     text(f"""## Key result and healthcare interpretation
 
 **Archived report:** Across eight sections, mean ARI is **{means.SIGMA:.4f}** for SIGMA
-versus **{means.MCGAE:.4f}** for MCGAE. SIGMA exceeds MCGAE on 4 of 8 sections.
+versus **{means.MCGAE:.4f}** for MCGAE. SIGMA exceeds MCGAE on 4 of 8 sections and ranks first on {first_place} of 8.
 
 **ST-colon1 ablation:** Upgraded physical-only → hybrid changes ARI
 **{physical.ARI:.4f} → {hybrid.ARI:.4f}**, while Macro Dice changes
 **{physical.Macro_Dice:.4f} → {hybrid.Macro_Dice:.4f}**. Hybrid is not uniformly best.
 
-**Healthcare meaning:** Communication-aware representations can support study of
-tumor–stroma organization. The spatial field is an invasion-associated hypothesis
-for pathology and biological follow-up, not a validated migration or patient-outcome forecast.
+**Healthcare meaning:** Communication-aware representations may help study tumor–stroma organization. The spatial field is an exploratory hypothesis for pathology and biological follow-up, not a validated migration or patient-outcome forecast.
 
 *Numbers are transcribed from the report's tables; the synthetic execution above does not reproduce them.*
 """)

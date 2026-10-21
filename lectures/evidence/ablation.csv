@@ -1,9 +1,9 @@
-backbone,integration,ARI,Macro_Dice
-Original,Physical only,0.613,0.7124
-Original,Regularization,0.2289,0.4786
-Original,Attention,0.6476,0.806
-Original,Hybrid,0.5825,0.5978
-Upgraded,Physical only,0.6712,0.7383
-Upgraded,Regularization,0.6803,0.614
-Upgraded,Attention,0.6712,0.7383
-Upgraded,Hybrid,0.6775,0.7319
+backbone,integration,ARI,NMI,Macro_Dice,IoU
+Original,Physical only,0.5896,0.5156,0.7110,0.5880
+Original,Regularization,0.2304,0.1545,0.3573,0.2615
+Original,Attention,0.5864,0.5122,0.7408,0.5977
+Original,Hybrid,0.5255,0.4981,0.4866,0.3827
+Upgraded,Physical only,0.6345,0.5574,0.7292,0.6091
+Upgraded,Regularization,0.6460,0.6105,0.6418,0.5619
+Upgraded,Attention,0.6345,0.5574,0.7292,0.6091
+Upgraded,Hybrid,0.7328,0.6595,0.8618,0.7630

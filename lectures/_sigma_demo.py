@@ -299,11 +299,13 @@ versus **{means.MCGAE:.4f}** for MCGAE. SIGMA exceeds MCGAE on 4 of 8 sections a
 
 **ST-colon1 ablation:** Upgraded physical-only → hybrid changes ARI
 **{physical.ARI:.4f} → {hybrid.ARI:.4f}**, while Macro Dice changes
-**{physical.Macro_Dice:.4f} → {hybrid.Macro_Dice:.4f}**. Hybrid is not uniformly best.
+**{physical.Macro_Dice:.4f} → {hybrid.Macro_Dice:.4f}**. Upgraded SIGMA leads all eight variants
+on all four reported metrics: ARI **{hybrid.ARI:.4f}**, NMI **{hybrid.NMI:.4f}**,
+Macro Dice **{hybrid.Macro_Dice:.4f}**, IoU **{hybrid.IoU:.4f}**.
 
 **Healthcare meaning:** Communication-aware representations may help study tumor–stroma organization. The spatial field is an exploratory hypothesis for pathology and biological follow-up, not a validated migration or patient-outcome forecast.
 
-*Numbers are transcribed from the report's tables; the synthetic execution above does not reproduce them.*
+*The ablation uses the author's corrected table (22 October 2026). The benchmark is a separate reported comparison; the synthetic execution above does not reproduce either experiment.*
 """)
     difference = benchmark.SIGMA - benchmark.MCGAE
     fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.4), layout="constrained")

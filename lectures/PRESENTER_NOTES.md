@@ -143,9 +143,13 @@ Return to the report tables. Across eight sections, the archived mean ARI is
 falls below it on four, and ranks first among the four listed methods on three.
 The average gain does not mean every tissue section improves.
 
-The ST-colon1 ablation also shows a trade-off. With the upgraded backbone,
-physical-only to hybrid changes ARI from 0.6712 to 0.6775, but Macro Dice changes
-from 0.7383 to 0.7319. Therefore hybrid reconstruction is not uniformly best.
+The corrected ST-colon1 ablation shows a stronger result. With the upgraded
+backbone, physical-only to SIGMA changes ARI from 0.6345 to 0.7328 and Macro Dice
+from 0.7292 to 0.8618. Upgraded SIGMA leads all eight variants on all four metrics:
+ARI 0.7328, NMI 0.6595, Macro Dice 0.8618 and IoU 0.7630. The original-backbone
+SIGMA variant falls below its baseline, so the benefit depends on architecture.
+This is a separate comparison from the eight-section benchmark; its ST-colon1
+number should not replace the benchmark entry.
 These archived metrics describe clustering or compartment agreement; they do not
 measure prospective patient-level invasion prediction.
 
@@ -155,5 +159,5 @@ a spatial hypothesis for pathology review and biological follow-up. The executio
 explains how the model produces those representations and visualizations, while
 the report supplies the separate, qualified evidence about segmentation performance.
 
-**Action:** Finish on the report comparison figure. State one gain, one trade-off
+**Action:** Finish on the report comparison figure. State one gain, the architecture dependence,
 and the distinction between an invasion-associated map and a validated forecast.

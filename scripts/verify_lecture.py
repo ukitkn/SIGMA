@@ -17,7 +17,7 @@ def main():
     images = sum(r["type"] == "image" for r in renderings)
     if images != 7:
         raise AssertionError(f"Expected the overview, five states and results figure, got {images}")
-    if not all(value in markdown for value in ["0.4901", "0.4204", "0.6775", "0.7319"]):
+    if not all(value in markdown for value in ["0.4901", "0.4204", "0.7328", "0.6595", "0.8618", "0.7630"]):
         raise AssertionError("The conclusion is missing report-table evidence.")
     if "0:00–2:20 | Healthcare problem and motivation" in markdown:
         raise AssertionError("Long presenter notes must remain outside the webpage.")

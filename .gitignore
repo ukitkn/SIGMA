@@ -9,6 +9,7 @@ data/*
 !data/.gitkeep
 outputs/*
 !outputs/.gitkeep
+_site/
 *.h5ad
 *.npz
 *.pt

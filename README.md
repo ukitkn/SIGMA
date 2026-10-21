@@ -83,6 +83,23 @@ Compare a Slingshot result exported as a CSV containing `spot_id` and `pseudotim
 sigma compare-slingshot --config config/default.yaml --slingshot-csv results/slingshot.csv
 ```
 
+## LecTrace presentation demo
+
+`lectures/01_sigma_execution.py` is a 10-minute, five-state walkthrough of the SIGMA computation. It covers the healthcare motivation, spatial and expression graphs, a ligand–receptor communication graph, dual graph message passing with attention, and a downstream invasion-associated score. Its five-spot example is synthetic teaching data; the values are not measurements or performance results from the colon samples.
+
+LecTrace requires Python 3.11 or newer. Install its optional dependency and start the interactive viewer from the repository root:
+
+```bash
+python -m pip install -e ".[lectrace]"
+lectrace serve lectures/01_sigma_execution.py
+```
+
+The presenter notes include suggested timing and talking points. The `@inspect` and `@stepover` directives keep the variable panel focused on the five selected execution states. The script also runs with ordinary Python for a text-only preview:
+
+```bash
+python lectures/01_sigma_execution.py
+```
+
 ## Output files
 
 The default output directory is `outputs/ST-colon1/`:

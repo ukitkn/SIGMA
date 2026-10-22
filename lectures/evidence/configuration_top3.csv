@@ -1,0 +1,22 @@
+section,rank,ARI,backbone,integration
+ST-colon2,1,0.678843,Upgraded,Hybrid
+ST-colon2,2,0.659491,Original,Hybrid
+ST-colon2,3,0.557731,Upgraded,Regularization
+ST-colon3,1,0.4370,Original,Regularization
+ST-colon3,2,0.4216,Original,Attention
+ST-colon3,3,0.4085,Upgraded,Hybrid
+ST-colon4,1,0.610483,Upgraded,Hybrid
+ST-colon4,2,0.602152,Original,Regularization
+ST-colon4,3,0.539658,Original,Attention
+ST-liver1,1,0.555732,Original,Regularization
+ST-liver1,2,0.523872,Original,Hybrid
+ST-liver1,3,0.521537,Original,Attention
+ST-liver2,1,0.885614,Original,Regularization
+ST-liver2,2,0.857331,Upgraded,Hybrid
+ST-liver2,3,0.832320,Original,Attention
+ST-liver3,1,0.408455,Upgraded,Hybrid
+ST-liver3,2,0.379981,Upgraded,Physical only
+ST-liver3,3,0.36758,Original,Attention
+ST-liver4,1,0.792359,Upgraded,Hybrid
+ST-liver4,2,0.733625,Original,Regularization
+ST-liver4,3,0.649565,Original,Hybrid

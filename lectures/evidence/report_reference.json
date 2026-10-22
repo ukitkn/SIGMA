@@ -1,0 +1,307 @@
+{
+  "report_title": "SIGMA: A Dual Encoder for Tumor Segmentation and Invasion Inference",
+  "report_alignment_date": "2026-10-23",
+  "author": "Hu Yunke",
+  "data": {
+    "sections": 8,
+    "spots": 31296,
+    "gene_features_per_section": 36601
+  },
+  "ablation_sigma": {
+    "ARI": 0.7328,
+    "NMI": 0.6595,
+    "Macro_Dice": 0.8618,
+    "IoU": 0.763
+  },
+  "benchmark_mean_ARI": {
+    "SIGMA": 0.4901,
+    "MCGAE": 0.4204,
+    "Seurat": 0.3941,
+    "stLearn": 0.279
+  },
+  "biological_analysis": {
+    "tumor_core_spots": 1665,
+    "EMT_r": 0.78,
+    "ECM_r": 0.765,
+    "CAF_distance_r": -0.286,
+    "Slingshot_DPT_rho_approx": 0.85
+  },
+  "software_3_assistance": "Software 3.0 tools provided limited assistance with coding, including suggestions for code organization and explanations of implementation details during reconstruction of the project workflow. For experimental evaluation, Gen-AI helped check consistency between reported numerical results and their written descriptions.",
+  "conclusion": "SIGMA integrates histological and spatial structure, transcriptomic profiles and inferred cell--cell communication within a dual-view graph autoencoder. In the ST-colon1 ablation, the three-layer SIGMA variant achieved ARI 0.7328 and Macro Dice 0.8618, outperforming all seven alternatives. In the separate eight-section benchmark, its mean ARI was 0.4901, compared with 0.4204 for MCGAE, although gains varied across sections. Downstream tumor-state analysis connected EMT/ECM activity and stromal proximity with pseudotime, producing a continuous invasion-associated potential field that maps molecular-state transitions back into tissue space.\n\nThe project showed that communication information and encoder architecture must be considered together: the hybrid strategy performed best with the upgraded backbone, whereas the original two-layer hybrid did not improve upon its baseline. Thus, adding biological relationships alone does not guarantee better segmentation; how these relationships are encoded and fused matters. A further lesson was that compartment identification and directional interpretation answer different questions. Segmentation describes tissue organization, while the potential field provides a hypothesis about how invasion-associated states may be ordered.\n\nThe present evaluation is limited to eight tissue sections, and the reported scores do not establish robustness across random seeds or independent clinical cohorts. Visium spots can contain mixed cell populations, and expression-derived ligand--receptor edges indicate potential communication rather than confirmed signaling. The inferred field also depends on root selection, marker programs and spatial smoothing; it does not measure longitudinal tumor movement. Future work should test these sensitivities, isolate the contribution of each communication module, and validate candidate transition regions and directions using independent pathology annotations, longitudinal data or functional experiments.",
+  "scope": "Report results are not recomputed by the synthetic teaching execution.",
+  "tables": {
+    "ablation": [
+      {
+        "backbone": "Original",
+        "integration": "Physical only",
+        "ARI": "0.5896",
+        "NMI": "0.5156",
+        "Macro_Dice": "0.7110",
+        "IoU": "0.5880"
+      },
+      {
+        "backbone": "Original",
+        "integration": "Regularization",
+        "ARI": "0.2304",
+        "NMI": "0.1545",
+        "Macro_Dice": "0.3573",
+        "IoU": "0.2615"
+      },
+      {
+        "backbone": "Original",
+        "integration": "Attention",
+        "ARI": "0.5864",
+        "NMI": "0.5122",
+        "Macro_Dice": "0.7408",
+        "IoU": "0.5977"
+      },
+      {
+        "backbone": "Original",
+        "integration": "Hybrid",
+        "ARI": "0.5255",
+        "NMI": "0.4981",
+        "Macro_Dice": "0.4866",
+        "IoU": "0.3827"
+      },
+      {
+        "backbone": "Upgraded",
+        "integration": "Physical only",
+        "ARI": "0.6345",
+        "NMI": "0.5574",
+        "Macro_Dice": "0.7292",
+        "IoU": "0.6091"
+      },
+      {
+        "backbone": "Upgraded",
+        "integration": "Regularization",
+        "ARI": "0.6460",
+        "NMI": "0.6105",
+        "Macro_Dice": "0.6418",
+        "IoU": "0.5619"
+      },
+      {
+        "backbone": "Upgraded",
+        "integration": "Attention",
+        "ARI": "0.6345",
+        "NMI": "0.5574",
+        "Macro_Dice": "0.7292",
+        "IoU": "0.6091"
+      },
+      {
+        "backbone": "Upgraded",
+        "integration": "Hybrid",
+        "ARI": "0.7328",
+        "NMI": "0.6595",
+        "Macro_Dice": "0.8618",
+        "IoU": "0.7630"
+      }
+    ],
+    "benchmark": [
+      {
+        "section": "ST-colon1",
+        "stLearn": "0.3065",
+        "Seurat": "0.447",
+        "MCGAE": "0.3212",
+        "SIGMA": "0.6775"
+      },
+      {
+        "section": "ST-colon2",
+        "stLearn": "0.436",
+        "Seurat": "0.5456",
+        "MCGAE": "0.4013",
+        "SIGMA": "0.565"
+      },
+      {
+        "section": "ST-colon3",
+        "stLearn": "0.0745",
+        "Seurat": "0.3152",
+        "MCGAE": "0.1555",
+        "SIGMA": "0.305"
+      },
+      {
+        "section": "ST-colon4",
+        "stLearn": "0.2805",
+        "Seurat": "0.338",
+        "MCGAE": "0.3768",
+        "SIGMA": "0.349"
+      },
+      {
+        "section": "ST-liver1",
+        "stLearn": "0.311",
+        "Seurat": "0.4334",
+        "MCGAE": "0.4437",
+        "SIGMA": "0.431"
+      },
+      {
+        "section": "ST-liver2",
+        "stLearn": "0.3046",
+        "Seurat": "0.3928",
+        "MCGAE": "0.7418",
+        "SIGMA": "0.742"
+      },
+      {
+        "section": "ST-liver3",
+        "stLearn": "0.1382",
+        "Seurat": "0.2339",
+        "MCGAE": "0.3152",
+        "SIGMA": "0.258"
+      },
+      {
+        "section": "ST-liver4",
+        "stLearn": "0.3804",
+        "Seurat": "0.4468",
+        "MCGAE": "0.608",
+        "SIGMA": "0.593"
+      }
+    ],
+    "configuration_top3": [
+      {
+        "section": "ST-colon2",
+        "rank": "1",
+        "ARI": "0.678843",
+        "backbone": "Upgraded",
+        "integration": "Hybrid"
+      },
+      {
+        "section": "ST-colon2",
+        "rank": "2",
+        "ARI": "0.659491",
+        "backbone": "Original",
+        "integration": "Hybrid"
+      },
+      {
+        "section": "ST-colon2",
+        "rank": "3",
+        "ARI": "0.557731",
+        "backbone": "Upgraded",
+        "integration": "Regularization"
+      },
+      {
+        "section": "ST-colon3",
+        "rank": "1",
+        "ARI": "0.4370",
+        "backbone": "Original",
+        "integration": "Regularization"
+      },
+      {
+        "section": "ST-colon3",
+        "rank": "2",
+        "ARI": "0.4216",
+        "backbone": "Original",
+        "integration": "Attention"
+      },
+      {
+        "section": "ST-colon3",
+        "rank": "3",
+        "ARI": "0.4085",
+        "backbone": "Upgraded",
+        "integration": "Hybrid"
+      },
+      {
+        "section": "ST-colon4",
+        "rank": "1",
+        "ARI": "0.610483",
+        "backbone": "Upgraded",
+        "integration": "Hybrid"
+      },
+      {
+        "section": "ST-colon4",
+        "rank": "2",
+        "ARI": "0.602152",
+        "backbone": "Original",
+        "integration": "Regularization"
+      },
+      {
+        "section": "ST-colon4",
+        "rank": "3",
+        "ARI": "0.539658",
+        "backbone": "Original",
+        "integration": "Attention"
+      },
+      {
+        "section": "ST-liver1",
+        "rank": "1",
+        "ARI": "0.555732",
+        "backbone": "Original",
+        "integration": "Regularization"
+      },
+      {
+        "section": "ST-liver1",
+        "rank": "2",
+        "ARI": "0.523872",
+        "backbone": "Original",
+        "integration": "Hybrid"
+      },
+      {
+        "section": "ST-liver1",
+        "rank": "3",
+        "ARI": "0.521537",
+        "backbone": "Original",
+        "integration": "Attention"
+      },
+      {
+        "section": "ST-liver2",
+        "rank": "1",
+        "ARI": "0.885614",
+        "backbone": "Original",
+        "integration": "Regularization"
+      },
+      {
+        "section": "ST-liver2",
+        "rank": "2",
+        "ARI": "0.857331",
+        "backbone": "Upgraded",
+        "integration": "Hybrid"
+      },
+      {
+        "section": "ST-liver2",
+        "rank": "3",
+        "ARI": "0.832320",
+        "backbone": "Original",
+        "integration": "Attention"
+      },
+      {
+        "section": "ST-liver3",
+        "rank": "1",
+        "ARI": "0.408455",
+        "backbone": "Upgraded",
+        "integration": "Hybrid"
+      },
+      {
+        "section": "ST-liver3",
+        "rank": "2",
+        "ARI": "0.379981",
+        "backbone": "Upgraded",
+        "integration": "Physical only"
+      },
+      {
+        "section": "ST-liver3",
+        "rank": "3",
+        "ARI": "0.36758",
+        "backbone": "Original",
+        "integration": "Attention"
+      },
+      {
+        "section": "ST-liver4",
+        "rank": "1",
+        "ARI": "0.792359",
+        "backbone": "Upgraded",
+        "integration": "Hybrid"
+      },
+      {
+        "section": "ST-liver4",
+        "rank": "2",
+        "ARI": "0.733625",
+        "backbone": "Original",
+        "integration": "Regularization"
+      },
+      {
+        "section": "ST-liver4",
+        "rank": "3",
+        "ARI": "0.649565",
+        "backbone": "Original",
+        "integration": "Hybrid"
+      }
+    ]
+  }
+}

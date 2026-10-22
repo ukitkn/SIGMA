@@ -6,7 +6,7 @@ from lectrace import text
 
 from sigma.graphs import build_ccc_graph, knn_graph
 from sigma.model import student_t_assignments
-from sigma.analysis import _annotate_compartments, _trajectory
+from _report_protocol import annotate_compartments
 from _sigma_demo import Demo, explain, show, show_intro, show_results
 
 
@@ -17,13 +17,14 @@ def main():
 
     # State 1 | 2:30–3:40 | Expression and location become graph inputs.
     explain("State 1 · Build physical and communication graphs",
-            "The teaching run connects spots by coordinates and scores nearby pairs with one CXCL12→CXCR4 example.",
+            "Spatial neighbors are weighted by coordinate distance and synthetic morphology descriptors; nearby pairs receive CXCL12→CXCR4 scores.",
             "Thirty receptor shuffles and top-k selection produce a symmetric, weighted CCC graph.",
-            "Each graph defines a different neighborhood for message passing; this demo omits the H&E features described in the report.")
+            "The physical view represents tissue structure; the CCC view supplies expression-compatible communication context. Patch descriptors here are synthetic, not extracted H&E.")
     adata, coordinates = demo.adata, demo.coordinates  # @inspect coordinates
-    physical = knn_graph(coordinates, k=8)  # @inspect physical
+    spatial_candidates = knn_graph(coordinates, k=8)
+    physical = demo.physical_graph(spatial_candidates)  # @inspect physical
     communication, graph_info = build_ccc_graph(
-        adata, demo.lr_path, physical, top_k=8, permutations=30, seed=1234,
+        adata, demo.lr_path, spatial_candidates, top_k=8, permutations=30, seed=1234,
     )  # @inspect graph_info
     show(demo.graph_figure(physical, communication))
 
@@ -58,27 +59,26 @@ def main():
     # State 4 | 6:30–7:35 | Cluster membership is different from a tissue label.
     explain("State 4 · Turn an embedding into interpretable tissue groups",
             "Student-t distances assign each spot softly to three learned cluster centers.",
-            "Argmax gives cluster IDs; marker programs separately annotate Tumor, Stroma and Other.",
+            "Argmax gives cluster IDs; report marker programs separately annotate Tumor (IFITM1/SNHG6), F/S (IGFBP7/VIM/LGALS1) and normal/other (ZG16/ITLN1/CLCA1).",
             "A cluster ID is not a tumor probability, and marker labels are not independent histology validation.")
     final = demo.forward()  # @invisible
     model.initialize_clusters(final["z"].detach().numpy(), seed=1234)
     q = student_t_assignments(final["z"], model.cluster_centers)  # @inspect q
     cluster_id = q.argmax(dim=1)  # @inspect cluster_id
     demo.attach_embeddings(final, cluster_id)  # @invisible
-    _annotate_compartments(adata, minimum=0.05)
+    annotate_compartments(adata)
     show(demo.compartment_figure(q, cluster_id))
 
     # State 5 | 7:35–8:45 | A spatial hypothesis follows from rooted graph ordering.
     explain("State 5 · Convert rooted pseudotime into a spatial score field",
-            "A marker-informed root anchors diffusion pseudotime on the learned spot graph.",
-            "Kernel smoothing turns relative spot scores into P(x,y) and its gradient.",
+            "Tumor states are scored by median EMT, ECM and stromal distance; ranks select an early root for DPT.",
+            "Anatomical-axis smoothing and Gaussian interpolation produce P(x,y), U=1−P and F=−∇U.",
             "The field can guide follow-up review; it is not elapsed time, physical motion, or validated patient risk.")
-    _trajectory(adata, neighbors=20)
-    pseudotime = adata.obs["invasion_progress"].to_numpy()  # @inspect pseudotime
+    pseudotime = demo.rooted_pseudotime()  # @inspect pseudotime
     field = demo.spatial_field()  # @inspect field
     show(demo.field_figure(field))
 
-    # Conclusion | 8:45–10:00 | Archived results are separate from this execution.
+    # Conclusion | 8:45–10:00 | Report results, lessons, limitations and next steps.
     show_results()
 
 

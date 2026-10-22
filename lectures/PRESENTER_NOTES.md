@@ -14,9 +14,12 @@ spatial expression map can help identify and interpret these tissue relationship
 
 Spatial transcriptomics measures gene expression together with tissue coordinates.
 A spot can contain several cells, so our segmentation task assigns spots to tissue
-compartments; it does not outline individual cell membranes. Expression tells us
-which programs are active. Coordinates tell us which spots are close. Neither one
-alone tells us whether nearby spots also express a compatible ligand and receptor.
+compartments; it does not outline individual cell membranes. H&E reveals tissue architecture and morphological boundaries. Expression tells us
+which molecular programs are active, while coordinates locate the spots.
+Ligand–receptor information adds potential communication context. The report uses
+eight colon/liver sections containing 31,296 spots, with 36,601 gene features per
+section; R conversion aligns the count matrix, coordinates and metadata in a
+Visium-compatible structure before filtering, normalization and feature selection.
 
 SIGMA extends an MCGAE-inspired graph autoencoder with physical and communication
 views. A base representation feeds two graph encoders. One follows physical
@@ -39,8 +42,9 @@ approach are clear. Then move to State 1.
 ## 2:30–3:40 — State 1: physical and communication graphs
 
 Each row of the input is a spot and each column is a gene. The example normalizes
-library totals and applies log one plus expression. The first graph connects nearby
-coordinates. For the communication graph, the current code starts from spatial
+library totals and applies log one plus expression. The first graph connects eight-nearest spatial neighbors and weights their edges
+by both coordinate distance and patch-feature similarity. Here the patch descriptors
+are synthetic; the report uses H&E features through the upstream MCGAE workflow. For the communication graph, the current code starts from spatial
 candidates and combines ligand expression at one endpoint with receptor expression
 at the other. This small example uses CXCL12 and CXCR4.
 
@@ -69,9 +73,9 @@ graphs and branch parameters differ.
 The important fusion line is the concatenation followed by a learned linear map
 and ReLU. This is the reconstruction's hybrid setting, rather than its optional
 cross-view attention-fusion variant. The base still uses attention internally.
-The report mentions Jumping Knowledge, but does not specify its operator; the
-teaching configuration leaves it disabled, so this demo makes no claim about the
-historical JK setting. We inspect one forward pass after a short training run;
+The report defines optional Jumping Knowledge by projecting concatenated layer
+outputs, but disables it in the reference protocol. This teaching run also disables
+it; the ablation does not isolate a JK contribution. We inspect one forward pass after a short training run;
 the eighty-epoch loop is deliberately omitted from this presentation trace.
 
 **Action:** Point to `z_base`, `z_sp`, `z_ccc` and `z`. Follow one heatmap row across
@@ -107,8 +111,8 @@ normalizes the resulting similarities. Each row sums to one. Taking the largest
 entry gives a cluster index, but the index has no inherent tumor or stroma meaning.
 It is also not a calibrated cell-type probability.
 
-The current analysis code separately scores expression marker programs to annotate
-Tumor, Stroma and Other. Compare the cluster panel with the marker panel. They are
+The teaching analysis separately scores the report's marker programs: IFITM1/SNHG6
+for Tumor, IGFBP7/VIM/LGALS1 for F/S, and ZG16/ITLN1/CLCA1 for normal/other. Compare the cluster panel with the marker panel. They are
 different outputs computed by different rules. Marker agreement can help interpret
 the representation, but labels built from those same expression programs are not
 independent biological validation. Evaluation against available tissue references
@@ -119,14 +123,22 @@ difference between an unsupervised partition and a marker-based compartment labe
 
 ## 7:35–8:45 — State 5: pseudotime and spatial interpretation
 
-The downstream code chooses an early root using EMT, ECM and distance to
-fibroblast-labeled spots. Diffusion pseudotime then orders spots relative to that
-root on the learned graph. In this implementation the DPT graph covers the full
-teaching slice; tumor-only subclustering is a separate analysis in the full pipeline.
+The report's downstream construction first identifies tumor states with Leiden at
+resolution 0.4. It scores each state's median EMT, ECM and distance to F/S spots.
+An early state has lower EMT/ECM and greater stromal distance. Within that state,
+rank sums select a root spot. DPT then orders the full teaching graph relative to
+that root. The reference EMT program contrasts VIM, FN1, MMP9, TWIST1 and ZEB1
+with CDH1 and EPCAM; ECM uses COL1A1, COL1A2, FN1 and TNC. PAGA summarizes
+state connectivity. Unreachable spots are excluded rather than assigned a fabricated rank.
 
-The left panel shows root-relative ordering. Gaussian interpolation produces the
-continuous score in the right panel. The arrows follow the gradient of that score.
-Equivalently, if U equals one minus P, they follow minus the gradient of U.
+The left panel shows normalized root-relative DPT. The normal/other and stromal
+centroids define an anatomical axis. Spot scores are sorted along it and smoothed
+with a centered 31-spot moving average, then interpolated to an 80 × 80 grid using
+Gaussian weights and bandwidth 80 in the input coordinates. Up to 80 neighbors
+are used (all 60 in this small example). The continuous progression intensity is P;
+the complementary potential is U = 1 − P. Arrows follow F = −∇U = ∇P, calculated
+using actual grid spacing. The right panel shows P, not U, so higher intensity means
+a later inferred state rather than higher complementary potential.
 
 The change is from discrete spot scores to a spatial landscape that can guide
 inspection. Root choice, marker programs and smoothing influence that landscape.
@@ -159,5 +171,14 @@ a spatial hypothesis for pathology review and biological follow-up. The executio
 explains how the model produces those representations and visualizations, while
 the report supplies the separate, qualified evidence about segmentation performance.
 
-**Action:** Finish on the report comparison figure. State one gain, the architecture dependence,
-and the distinction between an invasion-associated map and a validated forecast.
+The report also discusses 1,665 tumor-core spots: the ordering correlates with EMT
+at r = 0.780, ECM at r = 0.765 and nearest-CAF distance at r = −0.286. The shared-
+embedding Slingshot–DPT comparison gives approximately rho = 0.85. These are
+interpretation checks rather than independent validation of movement. Future work
+should examine seed variability, module ablations and root/marker/smoothing
+sensitivity, then compare candidate routes with independent biological evidence.
+
+**Action:** Finish on the report benchmark and ablation figure. State one gain,
+the architecture dependence, one limitation and a concrete validation direction.
+The final Software 3.0 note reproduces the report's limited-assistance disclosure;
+it is not an additional computational state.

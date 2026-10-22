@@ -1,5 +1,6 @@
 """Synthetic inputs, presentation plots and checks around the SIGMA implementation."""
 
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -20,6 +21,8 @@ from sigma.graphs import expression_knn_graph, normalize_adjacency
 from sigma.model import SigmaModel, train_model
 from sigma.pipeline import _edge_tensor, _torch_sparse
 from sigma.utils import set_seed
+from _report_protocol import (REPORT_EMT, REPORT_ECM, REPORT_COMPARTMENTS, axis_smoothed_field_input,
+                              morphology_graph, rooted_pseudotime)
 
 
 HERE = Path(__file__).resolve().parent
@@ -38,19 +41,21 @@ def show(figure):
 def show_intro():
     text("""## Healthcare problem, motivation and approach
 
-**Problem:** Recover spot-level tumor, stromal and other compartments around the colorectal tumor margin.
+**Problem:** Characterize colorectal tumor–stroma compartments and invasion-associated tissue transitions.
 
-**Motivation:** Spatial transcriptomics adds location to expression; proximity alone does not describe ligand–receptor context.
+**Motivation:** H&E supplies tissue architecture; spatial transcriptomics supplies localized molecular programs; ligand–receptor pairs supply potential communication context.
 
-**Question:** Can communication-aware graph learning improve compartment recovery and support invasion-associated interpretation?
+**Question:** Can these complementary sources improve compartment recovery and support a biologically oriented spatial ordering?
 
-**Approach:** MCGAE-inspired base → physical / CCC encoders → hybrid fusion → expression + topology reconstruction → compartments and a spatial score field.
+**Approach:** Physical / communication encoders → concat fusion → expression + topology reconstruction → compartments / tumor states → rooted DPT → invasion potential field.
 
-*The execution uses 60 synthetic spots and this repository's reconstructed code. Report results shown at the end are archived table values; this teaching run does not reproduce them.*
+**Report data:** Eight colon/liver sections, 31,296 spots, 36,601 gene features per section. R conversion aligns counts, coordinates and metadata in a Visium-compatible layout; preprocessing retains full-gene expression for biological scoring.
+
+*Executable example: 60 synthetic spots, synthetic patch descriptors and one illustrative LR pair. The report's experimental scores are shown separately at the end.*
 """)
     fig, ax = plt.subplots(figsize=(10, 2.8), layout="constrained")
-    labels = ["Spatial expression\nX + coordinates", "Dual graph encoders\nphysical + CCC",
-              "Hybrid reconstruction\nexpression + topology", "Tissue interpretation\ncompartments + field"]
+    labels = ["Tissue inputs\nexpression + morphology", "Dual graph encoders\nphysical + CCC",
+              "Hybrid reconstruction\nexpression + topology", "Spatial interpretation\nDPT → U, −∇U"]
     for i, label in enumerate(labels):
         ax.text(i * 2.5, 0.5, label, ha="center", va="center", fontsize=11,
                 bbox={"boxstyle": "round,pad=0.65", "fc": "#eff5f7", "ec": "#688391"})
@@ -76,17 +81,25 @@ class Demo:
         column = self.coordinates[:, 0] / 100
         tumor, stroma, normal = (column >= 2) & (column <= 6), column >= 7, column <= 1
         self.genes = sorted(set(sum(SIGNATURES.values(), []) + EMT_GENES + ECM_GENES
+                                + REPORT_EMT + REPORT_ECM + sum(REPORT_COMPARTMENTS.values(), [])
                                 + ["CDH1", "CXCL12", "CXCR4"]))
+        # Smooth synthetic programs expose a continuum rather than three disconnected islands.
+        normal_strength = np.clip((3 - column) / 3, 0, 1)
+        tumor_strength = np.clip(1 - np.abs(column - 4) / 4, 0, 1)
+        stroma_strength = np.clip((column - 4) / 5, 0, 1)
         rates = np.full((60, len(self.genes)), 1.5)
-        for label, mask in [("TumorEpithelial", tumor), ("Fibroblast", stroma),
-                            ("NormalEpithelial", normal)]:
+        for label, mask in [("TumorEpithelial", tumor_strength), ("Fibroblast", stroma_strength),
+                            ("NormalEpithelial", normal_strength)]:
             indices = [self.genes.index(g) for g in SIGNATURES[label]]
-            rates[np.ix_(mask, indices)] += 24
+            rates[:, indices] += 24 * mask[:, None]
+        for label, mask in [("Tumor", tumor_strength), ("Stroma", stroma_strength), ("Other", normal_strength)]:
+            indices = [self.genes.index(gene) for gene in REPORT_COMPARTMENTS[label]]
+            rates[:, indices] += 24 * mask[:, None]
         for gene in set(EMT_GENES + ECM_GENES):
             rates[:, self.genes.index(gene)] += 5 * column / 9
         rates[:, self.genes.index("CDH1")] += 12 * (normal | tumor)
-        rates[:, self.genes.index("CXCL12")] += 24 * stroma + 8 * (column == 6)
-        rates[:, self.genes.index("CXCR4")] += 20 * tumor + 6 * stroma
+        rates[:, self.genes.index("CXCL12")] += 24 * stroma_strength + 8 * (column == 6)
+        rates[:, self.genes.index("CXCR4")] += 20 * tumor_strength + 6 * stroma_strength
         rates *= rng.uniform(0.8, 1.2, (60, 1))
         counts = rng.poisson(rates).astype(np.float32)
         self.adata = ad.AnnData(counts)
@@ -100,9 +113,22 @@ class Demo:
         self.lr_path = self.directory / "teaching_lr.csv"
         pd.DataFrame({"ligand": ["CXCL12"], "receptor": ["CXCR4"]}).to_csv(
             self.lr_path, index=False)
+        # Synthetic patch descriptors illustrate morphology weighting, not a real H&E extractor.
+        patch_rng = np.random.default_rng(5678)
+        self.morphology = np.column_stack([tumor_strength, stroma_strength, normal_strength]).astype(np.float32)
+        self.morphology += patch_rng.normal(0, 0.04, self.morphology.shape)
+        self.adata.obsm["teaching_patch_features"] = self.morphology
         self.selected = np.array([32, 36, 38])
         plt.rcParams.update({"font.size": 10, "axes.spines.top": False,
                              "axes.spines.right": False, "figure.facecolor": "white"})
+
+    def physical_graph(self, candidates):
+        graph, self.graph_scales = morphology_graph(
+            self.coordinates, self.morphology, candidates)
+        return graph
+
+    def rooted_pseudotime(self):
+        return rooted_pseudotime(self.adata, neighbors=20)
 
     def fit(self, physical, communication):
         self.physical, self.communication = physical, communication
@@ -161,17 +187,18 @@ class Demo:
         self.adata.obs["sigma_cluster"] = cluster_id.detach().numpy().astype(str)
 
     def spatial_field(self):
-        if "trajectory_fallback" in self.adata.uns:
-            raise RuntimeError("The lecture requires actual DPT, not the marker-rank fallback.")
-        values = self.adata.obs["invasion_progress"].to_numpy()
-        if not np.isfinite(values).all() or np.ptp(values) <= 0:
-            raise RuntimeError("The teaching graph must yield finite, non-constant DPT.")
-        _spatial_field(self.adata, self.directory, grid_size=24, neighbors=20, bandwidth=120)
+        work, axis = axis_smoothed_field_input(self.adata, window=31)
+        _spatial_field(work, self.directory, grid_size=80, neighbors=80, bandwidth=80)
         self.field_table = pd.read_csv(self.directory / "spatial_invasion_field.csv")
-        return {"root_spot": str(self.adata.obs_names[self.adata.uns["dpt_root_index"]]),
-                "pseudotime_range": [round(float(values.min()), 3), round(float(values.max()), 3)],
-                "grid_shape": [24, 24], "bandwidth": 120,
-                "direction": "gradient(P) = -gradient(1-P)", "units": "relative score / coordinate"}
+        root = self.adata.uns["dpt_root_index"]
+        return {"root_spot": str(self.adata.obs_names[root]),
+                "early_tumor_state": self.adata.uns["early_tumor_state"],
+                "unreachable_spots": self.adata.uns["unreachable_spots"],
+                "anatomical_axis": np.round(axis, 3).tolist(),
+                "moving_average_window": 31, "grid_shape": [80, 80],
+                "neighbors": min(80, self.adata.n_obs), "bandwidth": 80,
+                "potential": "U = 1 - P", "direction": "F = -gradient(U) = gradient(P)",
+                "units": "relative score / input coordinate"}
 
     def _tissue_axes(self, axes):
         for ax in np.atleast_1d(axes):
@@ -202,7 +229,7 @@ class Demo:
         table.set_fontsize(9)
         table.scale(1, 1.7)
         self._tissue_axes(axes[:2])
-        fig.suptitle("Synthetic input · one teaching LR pair · no CellPhoneDB significance test")
+        fig.suptitle("Synthetic expression + patch descriptors · one teaching LR pair · symmetric graphs")
         return fig
 
     def embedding_figure(self, base, spatial, ccc, fused):
@@ -271,50 +298,71 @@ class Demo:
         axes[0].set_title("DPT: root-relative graph ordering")
         axes[0].legend(fontsize=8)
         table = self.field_table
-        p = table.invasion_potential.to_numpy().reshape(24, 24)
-        vx = table.velocity_x.to_numpy().reshape(24, 24)
-        vy = table.velocity_y.to_numpy().reshape(24, 24)
-        xx, yy = table.x.to_numpy().reshape(24, 24), table.y.to_numpy().reshape(24, 24)
+        p = table.invasion_potential.to_numpy().reshape(80, 80)
+        vx = table.velocity_x.to_numpy().reshape(80, 80)
+        vy = table.velocity_y.to_numpy().reshape(80, 80)
+        xx, yy = table.x.to_numpy().reshape(80, 80), table.y.to_numpy().reshape(80, 80)
         axes[1].contourf(xx, yy, p, levels=np.linspace(0, 1, 11), cmap="viridis", vmin=0, vmax=1)
-        axes[1].quiver(xx[::3, ::3], yy[::3, ::3], vx[::3, ::3], vy[::3, ::3], color="white")
-        axes[1].set_title("P(x,y) and its score gradient")
+        axes[1].quiver(xx[::10, ::10], yy[::10, ::10], vx[::10, ::10], vy[::10, ::10], color="white")
+        axes[1].set_title("P = 1 − U; arrows: F = −∇U")
         self._tissue_axes(axes)
         fig.colorbar(points, ax=list(axes), label="Relative invasion-associated score", shrink=0.8)
-        fig.suptitle("Synthetic illustration · marker-guided root · no calibrated time, velocity or patient risk")
+        fig.suptitle("State-guided root → DPT → anatomical-axis smoothing → Gaussian field")
         return fig
 
 
 def show_results():
     benchmark = pd.read_csv(HERE / "evidence/benchmark.csv")
     ablation = pd.read_csv(HERE / "evidence/ablation.csv")
+    ranking = pd.read_csv(HERE / "evidence/configuration_top3.csv")
     means = benchmark[["stLearn", "Seurat", "MCGAE", "SIGMA"]].mean()
-    physical = ablation[(ablation.backbone == "Upgraded") & (ablation.integration == "Physical only")].iloc[0]
+    base = ablation[(ablation.backbone == "Upgraded") & (ablation.integration == "Physical only")].iloc[0]
     hybrid = ablation[(ablation.backbone == "Upgraded") & (ablation.integration == "Hybrid")].iloc[0]
+    selected = ranking[(ranking.backbone == "Upgraded") & (ranking.integration == "Hybrid")]
     assert round(means.SIGMA, 4) == 0.4901 and round(means.MCGAE, 4) == 0.4204
-    first_place = int((benchmark["SIGMA"] == benchmark[["stLearn", "Seurat", "MCGAE", "SIGMA"]].max(axis=1)).sum())
-    text(f"""## Key result and healthcare interpretation
+    text(f"""## Key findings and healthcare interpretation
 
-**Archived report:** Across eight sections, mean ARI is **{means.SIGMA:.4f}** for SIGMA
-versus **{means.MCGAE:.4f}** for MCGAE. SIGMA exceeds MCGAE on 4 of 8 sections and ranks first on {first_place} of 8.
+**ST-colon1 ablation:** Three-layer SIGMA leads all eight variants: ARI **{hybrid.ARI:.4f}**,
+NMI **{hybrid.NMI:.4f}**, Macro Dice **{hybrid.Macro_Dice:.4f}**, IoU **{hybrid.IoU:.4f}**.
+Matching Base: ARI **{base.ARI:.4f}**, Dice **{base.Macro_Dice:.4f}**.
 
-**ST-colon1 ablation:** Upgraded physical-only → hybrid changes ARI
-**{physical.ARI:.4f} → {hybrid.ARI:.4f}**, while Macro Dice changes
-**{physical.Macro_Dice:.4f} → {hybrid.Macro_Dice:.4f}**. Upgraded SIGMA leads all eight variants
-on all four reported metrics: ARI **{hybrid.ARI:.4f}**, NMI **{hybrid.NMI:.4f}**,
-Macro Dice **{hybrid.Macro_Dice:.4f}**, IoU **{hybrid.IoU:.4f}**.
+**Eight-section benchmark:** Mean ARI **{means.SIGMA:.4f}** (SIGMA) versus **{means.MCGAE:.4f}** (MCGAE).
+ST-colon1 here is **0.6775**, separate from ablation **0.7328**.
+Separate configuration ranking: upgraded Hybrid first on **{int((selected['rank'] == 1).sum())} of 7**,
+top three on **{len(selected)} of 7**; these settings are not pooled.
 
-**Healthcare meaning:** Communication-aware representations may help study tumor–stroma organization. The spatial field is an exploratory hypothesis for pathology and biological follow-up, not a validated migration or patient-outcome forecast.
+**What we learned:** Communication and encoder capacity must be designed together:
+two-layer Hybrid falls below its baseline; upgraded Hybrid performs best.
 
-*The ablation uses the author's corrected table (22 October 2026). The benchmark is a separate reported comparison; the synthetic execution above does not reproduce either experiment.*
+**Biological checks (report):** **1,665 tumor-core spots**; EMT **r = 0.780**,
+ECM **r = 0.765**, nearest-CAF distance **r = −0.286**;
+shared-embedding Slingshot–DPT **ρ ≈ 0.85**. These support interpretation without validating direction.
+
+**Healthcare meaning:** Rooted DPT and the potential field turn static molecular patterns into
+candidate invasion-associated transitions for pathology review.
+
+**Limits and next steps:** Mixed spots, inferred LR edges, root choice and smoothing affect interpretation.
+Test seeds, module ablations and field sensitivity; validate candidate routes with independent pathology,
+longitudinal data or functional experiments.
+
+*Report results are separate from this synthetic teaching execution.*
 """)
-    difference = benchmark.SIGMA - benchmark.MCGAE
-    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.4), layout="constrained")
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.5), layout="constrained")
     axes[0].bar(means.index, means.values, color=["#aab8c2", "#8fa2af", "#526d82", "#258982"])
-    axes[0].set(title="Archived benchmark: eight-section mean", ylabel="ARI", ylim=(0, 0.8))
+    axes[0].set(title="Eight-section benchmark: mean ARI", ylabel="ARI", ylim=(0, 0.8))
     for i, value in enumerate(means):
         axes[0].text(i, value + 0.015, f"{value:.4f}", ha="center", fontsize=9)
-    axes[1].barh(benchmark.section, difference, color=["#258982" if d >= 0 else "#bf4b45" for d in difference])
-    axes[1].axvline(0, color="#526d82", linewidth=0.8)
-    axes[1].set(title="Improvement varies by tissue section", xlabel="SIGMA minus MCGAE ARI")
-    fig.suptitle("Report evidence · descriptive section-level comparison · no repeat-run uncertainty supplied")
+    metrics = ["ARI", "NMI", "Macro_Dice", "IoU"]
+    positions = np.arange(4)
+    axes[1].bar(positions - 0.18, base[metrics].to_numpy(dtype=float), 0.36,
+                label="Upgraded Base", color="#8491a5")
+    bars = axes[1].bar(positions + 0.18, hybrid[metrics].to_numpy(dtype=float), 0.36,
+                       label="Upgraded SIGMA", color="#258982")
+    axes[1].bar_label(bars, labels=[f"{hybrid[m]:.4f}" for m in metrics], fontsize=8, padding=3)
+    axes[1].set(title="ST-colon1 ablation: matching backbone", ylim=(0, 1),
+                xticks=positions, xticklabels=["ARI", "NMI", "Macro Dice", "IoU"])
+    axes[1].legend(fontsize=8, loc="upper left")
+    fig.suptitle("Report results · two distinct comparisons · the teaching run does not reproduce these scores")
     show(fig)
+    reference = json.loads((HERE / "evidence/report_reference.json").read_text())
+    text("## Software 3.0 assistance\n\n" + reference["software_3_assistance"])

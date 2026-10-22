@@ -8,7 +8,7 @@ The repository contains a complete implementation of the workflow described in t
 
 1. Load an AnnData `.h5ad` file and validate spot identifiers and spatial coordinates.
 2. Filter genes, select up to 3,000 highly variable genes, normalize to 10,000 counts per spot, and apply `log1p`. The full-gene normalized matrix is retained for marker and ligand–receptor scoring.
-3. Construct a spatial k-nearest-neighbor graph. Build the communication graph from ligand–receptor pairs on spatial candidate edges, score both ligand-to-receptor directions, estimate a permutation background by shuffling receptor profiles, retain significant edges, and sparsify each node to its strongest partners.
+3. Construct a spatial k-nearest-neighbor graph. Build the communication graph from ligand–receptor pairs on spatial candidate edges, score both ligand-to-receptor directions, estimate a permutation background by shuffling receptor profiles, retain positive standardized edges, and sparsify each node to its strongest partners.
 4. Train an MCGAE-inspired multi-view graph autoencoder. It encodes original and corrupted expression over the spatial graph, a variational feature view, and a cosine expression-neighbor graph; attention fuses these views into the base representation. Separate spatial and ligand–receptor communication encoders then produce `X_sigma`. Expression reconstruction, VAE reconstruction and KL, spatial edge reconstruction, DEC-style clustering, communication edge reconstruction, contrastive learning between original and corrupted views, and spatial smoothness losses are optimized jointly.
 5. Assign marker-based cell-type and tumor/stroma labels, compare expression-PCA, base, and fused embedding Leiden partitions, cluster tumor spots at the configured Leiden resolution, and retain raw clustering metrics separately from majority-mapped descriptive metrics.
 6. Compute centered EMT and ECM scores, fibroblast distance, a marker-guided early root, PAGA connectivity, and DPT progression. The root is set to zero and progression is oriented from low to high DPT.
@@ -94,7 +94,7 @@ python -m pip install -e ".[lectrace]"
 lectrace serve lectures/01_sigma_execution.py
 ```
 
-The page contains concise explanations and computed figures. Full speaking notes and the ten-minute timing plan are in [`lectures/PRESENTER_NOTES.md`](lectures/PRESENTER_NOTES.md). The script selects graph construction, dual encoding with concat fusion, a reconstruction update, cluster interpretation, and the rooted spatial field. Initialization and the training loop are skipped in the presentation trace. Run it directly for an execution check, or build the interactive site:
+The page contains concise explanations and computed figures. Full speaking notes and the ten-minute timing plan are in [`lectures/PRESENTER_NOTES.md`](lectures/PRESENTER_NOTES.md). The script selects morphology-aware graph construction, dual encoding with concat fusion, a reconstruction update, cluster interpretation, and the report's state-rooted spatial field with anatomical-axis smoothing. The overview, result tables, biological interpretation and conclusion follow the report revised on 23 October 2026. Initialization and the training loop are skipped in the presentation trace. Run it directly for an execution check, or build the interactive site:
 
 ```bash
 python lectures/01_sigma_execution.py
@@ -121,6 +121,6 @@ The raw clustering metrics are the primary partition-comparison metrics. Majorit
 
 ## Configuration notes
 
-The default training settings follow the available project materials where those settings were explicit: 3,000 HVGs, total-count normalization to 10,000, latent dimension 32, three graph layers, dropout 0.2, Adam at 0.001 with weight decay 0.0005, up to 400 epochs, cluster-loss warm-up at epoch 60, and a cosine learning-rate schedule. The implementation fixes the embedding path so that downstream analysis uses the fused spatial–communication representation. It also uses patience-based early stopping and records the selected checkpoint.
+The reconstruction provides explicit reference defaults, rather than recovered historical hyperparameters: 3,000 HVGs, total-count normalization to 10,000, latent dimension 32, three graph layers, dropout 0.2, Adam at 0.001 with weight decay 0.0005, up to 400 epochs, cluster-loss warm-up at epoch 60, and a cosine learning-rate schedule. The implementation fixes the embedding path so that downstream analysis uses the fused spatial–communication representation. It also uses patience-based early stopping and records the selected checkpoint.
 
 All code comments and user-facing project documentation are written in English. Large RDA files and derived datasets are excluded from version control.
